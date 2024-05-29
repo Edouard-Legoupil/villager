@@ -1,0 +1,10 @@
+pandoc: 3.1.11
+pkgdown: 2.0.7
+pkgdown_sha: ~
+articles:
+  example-boltzman-wealth: example-boltzman-wealth.html
+  extending-agents: extending-agents.html
+  extending-resources: extending-resources.html
+  forced_displacement: forced_displacement.html
+last_built: 2024-05-29T20:31Z
+
