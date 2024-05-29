@@ -1,3 +1,18 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
 # villager <img src='man/figures/logo.png' align="right" height="139" />
 
 [![](https://www.r-pkg.org/badges/version/villager?color=green)](https://cran.r-project.org/package=villager)
@@ -65,7 +80,7 @@ test_model <- function(current_state, previous_state, model_data, agent_mgr, res
 ```
 
 The agent manager can also be used to pair agents, representative of a relationship or social bond.
-```
+``` 
 agent_mgr$agent_mgr$connect_agents(mother, father)
 ```
 
@@ -73,7 +88,7 @@ agent_mgr$agent_mgr$connect_agents(mother, father)
 
 Resources are similar to agents in that they're both R6 classes, are instantiated similarly, and are also managed by an object passed into the model. An example of creating resources and adding them to the simulation is given below.
 
-```
+```{r}
 test_model <- function(current_state, previous_state, model_data, agent_mgr, resource_mgr) {
   corn_resource <- resource$new(name="corn", quantity = 10)
   fish_resource <- resource$new(name="fish", quantity = 15)
@@ -93,7 +108,7 @@ Objects of type `village`, `agent`, and `resource`have particular states at a pa
 
 Creating the initial state is done by creating a function that resembles model functions from above. The manager classes are used to populate the village with an initial population of agents and resources.
 
-```
+```{r}
 initial_condition <- function(current_state, model_data, agent_mgr, resource_mgr) {
   # Create the initial villagers
   mother <- agent$new(first_name="Kirsten", last_name="Taylor", age=9125)
@@ -125,7 +140,7 @@ small_village <- village$new("Test Model 1", initial_condition, test_model)
 
 The `simulator` class is responsible for running simulations. It encapsulates _all_ of the villages and controls the duration of the simulation. The simulator below runs for 100 time steps: roughly 13 years. The simulator can be paired with any number of villages, in the case of the simulator below, there's only a single village.
 
-```
+```{r}
 simulator <- simulation$new(100, list(small_village))
 simulator$run_model()
 ```
@@ -139,7 +154,7 @@ We can combine the examples above into a full simulation that...
 - Runs for 4745 days
 - Sets the villager profession after age 12
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 library(villager)
 initial_condition <- function(current_state, model_data, agent_mgr, resource_mgr) {
   # Create the initial villagers
@@ -184,7 +199,7 @@ To demonstrate programatically creating villagers, consider the model below that
 - Every even day, two new villagers are created
 - Every odd day, one villager dies
 
-```
+```{r}
 library(villager)
     current_day <- current_state$step
     print(current_day)
@@ -212,8 +227,6 @@ library(villager)
 ## Advanced Usage
 
 In the examples above, the default properties of agents and resources were used. It's possible that these won't cover all the needs for more diverse models. There are vignettes on extending the agent and resource classes to handle these situations.
-
-You can review a practical example applied to Forced Displacement in the related vignette.
 
 ## Contributing
 
