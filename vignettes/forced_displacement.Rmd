@@ -243,6 +243,7 @@ initial_condition <- function(current_state,
     if((i %% 2) == 0) {
       gender = 'male'
     }
+    skills <- c("Low", "Medium", "High")
     # Get a number from the distribution and bound the value between 0 and 1
     # Bug: The distribution is picking values exclusively less than 0 and greater than 1
     # This is leading to the population having either 0 or 1 tolerance.
@@ -253,6 +254,7 @@ initial_condition <- function(current_state,
                              gender=gender, 
                              health=health_norm[i], 
                              risk_tolerance=risk, 
+                             skills=sample(skills, 1), 
                              country_history=c("origin_A"))
     agent_mgr$add_agent(new_person)
   }
@@ -293,7 +295,13 @@ initial_condition <- function(current_state,
           risk <- round(risk_norm[i])
           risk <- pmin(risk, 1)
           risk <- pmax(risk, 0)
-          new_child <- person$new(age=8030, health = health_norm[i], risk_tolerance = risk, country_history = c("origin_A"))
+          new_child <- person$new(
+            age=8030, 
+            health = health_norm[i], 
+            risk_tolerance = risk, 
+            skills=sample(skills, 1), 
+            country_history = c("origin_A")
+          )
           agent_mgr$add_agent(new_child)
           potential_parent_person$add_child(new_child)
           # Get the partner
