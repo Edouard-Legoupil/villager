@@ -421,13 +421,13 @@ simulator$run_model()
 # Load in data that got save automatically
 agent_data <- readr::read_csv("results/Displacement_Model/agents.csv")
 ressource_data <- readr::read_csv("results/Displacement_Model/resources.csv")
-brks <- c(0, 0.25, 0.5, 0.75, 1)
+#brks <- c(0, 0.25, 0.5, 0.75, 1)
 # Filter the results down to just the last day
 ggplot(agent_data |>
                 dplyr::filter( step == simulation_iterations)) +
   aes(x = forcats::fct_rev(forcats::fct_infreq(country_history)) ) +
   geom_bar(fill = "#0072BC") +
-  scale_y_continuous(breaks = brks, labels = scales::percent(brks)) +
+ # scale_y_continuous(breaks = brks, labels = scales::percent(brks)) +
   coord_flip() +  
   labs(
     title = "Forced Displacement Simulation",
@@ -503,8 +503,30 @@ Using ABM in Migration and Forced Displacement Studies is not new. The literatur
 
 - [Agent-based modeling for migration and modern slavery research: a systematic review](https://link.springer.com/article/10.1007/s42001-020-00076-7)
 
+- [A Literature Review on the Usage of Agent-Based Modelling to Study Policies for Managing International Migration](https://www.mdpi.com/2076-0760/11/8/356)
+
+- [A generalized simulation development approach for predicting refugee destinations](https://www.researchgate.net/publication/320453789_A_generalized_simulation_development_approach_for_predicting_refugee_destinations/fulltext/59e63af7a6fdcc0e882481ee/A-generalized-simulation-development-approach-for-predicting-refugee-destinations.pdf)
+
+- [Agent-based models to inform economic policies on migration (ABM2Policy)](https://iiasa.ac.at/projects/agent-based-models-to-inform-economic-policies-on-migration-abm2policy)
+
+On Syria: 
+
 - [Prediction of Migration Paths Using Agent-Based Simulation Modeling: The Case of Syria](http://ieomsociety.org/proceedings/2022istanbul/187.pdf)
+
+- [An Agent-Based Model to Identify Migration Pathways of Refugees: The Case of Syria](https://ccl.northwestern.edu/2018/hebert2018.pdf) 
+
+- [The Mobility of Displaced Syrians - An Economic and Social Analysis](https://openknowledge.worldbank.org/bitstream/handle/10986/31205/9781464814013.pdf)
+
+- [Dynamical Simulation of the Syrian Refugee Crisis](https://zenodo.org/records/8240186)
+
+On Ukraine:
+
+- [An agent-based framework to study forced migration: A case study of Ukraine](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10949908/)
+
+- [Network Agency: An Agent-based Model of Forced Migration from Ukraine](https://aamas.csc.liv.ac.uk/Proceedings/aamas2024/pdfs/p1372.pdf)
+
+On Democratic Republic of Congo: 
 
 - [Where are they headed next? Modeling emergent displaced camps in the DRC using agent-based models](https://www.informs-sim.org/wsc18papers/includes/files/005.pdf)
  
- 
+

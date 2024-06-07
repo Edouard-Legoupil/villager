@@ -572,13 +572,13 @@ barriers, or policy changes in destination countries.</p>
 <code class="sourceCode R"><span><span class="co"># Load in data that got save automatically</span></span>
 <span><span class="va">agent_data</span> <span class="op">&lt;-</span> <span class="fu">readr</span><span class="fu">::</span><span class="fu"><a href="https://readr.tidyverse.org/reference/read_delim.html" class="external-link">read_csv</a></span><span class="op">(</span><span class="st">"results/Displacement_Model/agents.csv"</span><span class="op">)</span></span>
 <span><span class="va">ressource_data</span> <span class="op">&lt;-</span> <span class="fu">readr</span><span class="fu">::</span><span class="fu"><a href="https://readr.tidyverse.org/reference/read_delim.html" class="external-link">read_csv</a></span><span class="op">(</span><span class="st">"results/Displacement_Model/resources.csv"</span><span class="op">)</span></span>
-<span><span class="va">brks</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="co">#brks &lt;- c(0, 0.25, 0.5, 0.75, 1)</span></span>
 <span><span class="co"># Filter the results down to just the last day</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">agent_data</span> <span class="op">|&gt;</span></span>
 <span>                <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span> <span class="va">step</span> <span class="op">==</span> <span class="va">simulation_iterations</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu">forcats</span><span class="fu">::</span><span class="fu"><a href="https://forcats.tidyverse.org/reference/fct_rev.html" class="external-link">fct_rev</a></span><span class="op">(</span><span class="fu">forcats</span><span class="fu">::</span><span class="fu"><a href="https://forcats.tidyverse.org/reference/fct_inorder.html" class="external-link">fct_infreq</a></span><span class="op">(</span><span class="va">country_history</span><span class="op">)</span><span class="op">)</span> <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_bar</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"#0072BC"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="va">brks</span>, labels <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/percent_format.html" class="external-link">percent</a></span><span class="op">(</span><span class="va">brks</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span> <span class="co"># scale_y_continuous(breaks = brks, labels = scales::percent(brks)) +</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_flip.html" class="external-link">coord_flip</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>  </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
 <span>    title <span class="op">=</span> <span class="st">"Forced Displacement Simulation"</span>,</span>
@@ -698,12 +698,44 @@ agent-based approach to human migration movement</a></p></li>
 <li><p><a href="https://link.springer.com/article/10.1007/s42001-020-00076-7" class="external-link">Agent-based
 modeling for migration and modern slavery research: a systematic
 review</a></p></li>
+<li><p><a href="https://www.mdpi.com/2076-0760/11/8/356" class="external-link">A Literature
+Review on the Usage of Agent-Based Modelling to Study Policies for
+Managing International Migration</a></p></li>
+<li><p><a href="https://www.researchgate.net/publication/320453789_A_generalized_simulation_development_approach_for_predicting_refugee_destinations/fulltext/59e63af7a6fdcc0e882481ee/A-generalized-simulation-development-approach-for-predicting-refugee-destinations.pdf" class="external-link">A
+generalized simulation development approach for predicting refugee
+destinations</a></p></li>
+<li><p><a href="https://iiasa.ac.at/projects/agent-based-models-to-inform-economic-policies-on-migration-abm2policy" class="external-link">Agent-based
+models to inform economic policies on migration
+(ABM2Policy)</a></p></li>
+</ul>
+<p>On Syria:</p>
+<ul>
 <li><p><a href="http://ieomsociety.org/proceedings/2022istanbul/187.pdf" class="external-link">Prediction
 of Migration Paths Using Agent-Based Simulation Modeling: The Case of
 Syria</a></p></li>
-<li><p><a href="https://www.informs-sim.org/wsc18papers/includes/files/005.pdf" class="external-link">Where
+<li><p><a href="https://ccl.northwestern.edu/2018/hebert2018.pdf" class="external-link">An
+Agent-Based Model to Identify Migration Pathways of Refugees: The Case
+of Syria</a></p></li>
+<li><p><a href="https://openknowledge.worldbank.org/bitstream/handle/10986/31205/9781464814013.pdf" class="external-link">The
+Mobility of Displaced Syrians - An Economic and Social
+Analysis</a></p></li>
+<li><p><a href="https://zenodo.org/records/8240186" class="external-link">Dynamical Simulation
+of the Syrian Refugee Crisis</a></p></li>
+</ul>
+<p>On Ukraine:</p>
+<ul>
+<li><p><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10949908/" class="external-link">An
+agent-based framework to study forced migration: A case study of
+Ukraine</a></p></li>
+<li><p><a href="https://aamas.csc.liv.ac.uk/Proceedings/aamas2024/pdfs/p1372.pdf" class="external-link">Network
+Agency: An Agent-based Model of Forced Migration from
+Ukraine</a></p></li>
+</ul>
+<p>On Democratic Republic of Congo:</p>
+<ul>
+<li><a href="https://www.informs-sim.org/wsc18papers/includes/files/005.pdf" class="external-link">Where
 are they headed next? Modeling emergent displaced camps in the DRC using
-agent-based models</a></p></li>
+agent-based models</a></li>
 </ul>
 </div>
   </div>
