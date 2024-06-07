@@ -45,3 +45,8 @@ vignettes/*.pdf
 
 # translation temp files
 po/*~
+
+results/*
+tests/testthat/test_results/
+tests/testthat/results*
+vignettes/results/*
