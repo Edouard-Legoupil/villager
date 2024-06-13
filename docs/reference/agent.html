@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">villager</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.2.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.0.0</span>
       </span>
     </div>
 
@@ -42,6 +42,9 @@
     </li>
     <li>
       <a href="../articles/forced_displacement.html">Simulating Forced Displacement</a>
+    </li>
+    <li>
+      <a href="../articles/village-village-interactions.html">village-village-interaction</a>
     </li>
   </ul></li>
       </ul><ul class="nav navbar-nav navbar-right"><li>
@@ -157,13 +160,13 @@ number of functions that run at each timestep. It also has an associated</p>
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 
-<ul><li><p><a href="#method-new"><code>agent$new()</code></a></p></li>
-<li><p><a href="#method-is_alive"><code>agent$is_alive()</code></a></p></li>
-<li><p><a href="#method-get_days_since_last_birth"><code>agent$get_days_since_last_birth()</code></a></p></li>
-<li><p><a href="#method-add_child"><code>agent$add_child()</code></a></p></li>
-<li><p><a href="#method-as_table"><code>agent$as_table()</code></a></p></li>
-<li><p><a href="#method-clone"><code>agent$clone()</code></a></p></li>
-</ul></div><p></p><hr><a id="method-new"></a><div class="section">
+<ul><li><p><a href="#method-agent-new"><code>agent$new()</code></a></p></li>
+<li><p><a href="#method-agent-is_alive"><code>agent$is_alive()</code></a></p></li>
+<li><p><a href="#method-agent-get_days_since_last_birth"><code>agent$get_days_since_last_birth()</code></a></p></li>
+<li><p><a href="#method-agent-add_child"><code>agent$add_child()</code></a></p></li>
+<li><p><a href="#method-agent-as_table"><code>agent$as_table()</code></a></p></li>
+<li><p><a href="#method-agent-clone"><code>agent$clone()</code></a></p></li>
+</ul></div><p></p><hr><a id="method-agent-new"></a><div class="section">
 <h3 id="method-new-">Method <code>new()</code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
 <p>Used to created new agent objects.</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
@@ -242,7 +245,7 @@ A function that returns true or false whether the villager dies
 This is run each day</p>
 </div>
 
-</div><p></p><hr><a id="method-is_alive"></a><div class="section">
+</div><p></p><hr><a id="method-agent-is_alive"></a><div class="section">
 <h3 id="method-is-alive-">Method <code>is_alive()</code><a class="anchor" aria-label="anchor" href="#method-is-alive-"></a></h3>
 
 <div class="section">
@@ -257,7 +260,7 @@ Gets the number of days from the last birth. This is also
 the age of the most recently born agent</p>
 </div>
 
-</div><p></p><hr><a id="method-get_days_since_last_birth"></a><div class="section">
+</div><p></p><hr><a id="method-agent-get_days_since_last_birth"></a><div class="section">
 <h3 id="method-get-days-since-last-birth-">Method <code>get_days_since_last_birth()</code><a class="anchor" aria-label="anchor" href="#method-get-days-since-last-birth-"></a></h3>
 
 <div class="section">
@@ -272,7 +275,7 @@ Connects a child to the agent. This method ensures that the
 'children' vector is ordered.</p>
 </div>
 
-</div><p></p><hr><a id="method-add_child"></a><div class="section">
+</div><p></p><hr><a id="method-agent-add_child"></a><div class="section">
 <h3 id="method-add-child-">Method <code>add_child()</code><a class="anchor" aria-label="anchor" href="#method-add-child-"></a></h3>
 
 <div class="section">
@@ -294,7 +297,7 @@ Connects a child to the agent. This method ensures that the
 Returns a data.frame representation of the agent</p>
 </div>
 
-</div><p></p><hr><a id="method-as_table"></a><div class="section">
+</div><p></p><hr><a id="method-agent-as_table"></a><div class="section">
 <h3 id="method-as-table-">Method <code>as_table()</code><a class="anchor" aria-label="anchor" href="#method-as-table-"></a></h3>
 <p>I hope there's a more scalable way to do this in R; Adding every new attribute to this
 function isn't practical</p><div class="section">
@@ -313,7 +316,7 @@ the agent properties into the object inserted in the village_state.</p>
 <p>A data.frame representation of the agent</p>
 </div>
 
-</div><p></p><hr><a id="method-clone"></a><div class="section">
+</div><p></p><hr><a id="method-agent-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
 <h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>

@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">villager</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.2.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.0.0</span>
       </span>
     </div>
 
@@ -42,6 +42,9 @@
     </li>
     <li>
       <a href="../articles/forced_displacement.html">Simulating Forced Displacement</a>
+    </li>
+    <li>
+      <a href="../articles/village-village-interactions.html">village-village-interaction</a>
     </li>
   </ul></li>
       </ul><ul class="nav navbar-nav navbar-right"><li>
@@ -106,10 +109,10 @@ be subclassed if the agent and resource classes are subclasses, to write any add
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 
-<ul><li><p><a href="#method-new"><code>data_writer$new()</code></a></p></li>
-<li><p><a href="#method-write"><code>data_writer$write()</code></a></p></li>
-<li><p><a href="#method-clone"><code>data_writer$clone()</code></a></p></li>
-</ul></div><p></p><hr><a id="method-new"></a><div class="section">
+<ul><li><p><a href="#method-data_writer-new"><code>data_writer$new()</code></a></p></li>
+<li><p><a href="#method-data_writer-write"><code>data_writer$write()</code></a></p></li>
+<li><p><a href="#method-data_writer-clone"><code>data_writer$clone()</code></a></p></li>
+</ul></div><p></p><hr><a id="method-data_writer-new"></a><div class="section">
 <h3 id="method-new-">Method <code>new()</code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
 <p>Creates a new data writer object that has optional paths for data files.</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
@@ -142,7 +145,7 @@ be subclassed if the agent and resource classes are subclasses, to write any add
 Writes a village's state to disk.</p>
 </div>
 
-</div><p></p><hr><a id="method-write"></a><div class="section">
+</div><p></p><hr><a id="method-data_writer-write"></a><div class="section">
 <h3 id="method-write-">Method <code><a href="https://rdrr.io/r/base/write.html" class="external-link">write()</a></code><a class="anchor" aria-label="anchor" href="#method-write-"></a></h3>
 <p>Takes a state an the name of a village and writes the agents and resources to disk</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
@@ -166,7 +169,7 @@ Writes a village's state to disk.</p>
 <p>None</p>
 </div>
 
-</div><p></p><hr><a id="method-clone"></a><div class="section">
+</div><p></p><hr><a id="method-data_writer-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>

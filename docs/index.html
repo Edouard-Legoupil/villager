@@ -40,7 +40,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">villager</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.2.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.0.0</span>
       </span>
     </div>
 
@@ -67,6 +67,9 @@
     </li>
     <li>
       <a href="articles/forced_displacement.html">Simulating Forced Displacement</a>
+    </li>
+    <li>
+      <a href="articles/village-village-interactions.html">village-village-interaction</a>
     </li>
   </ul>
 </li>
@@ -131,9 +134,9 @@
 <h3 id="creating--managing-agents">Creating &amp; Managing Agents<a class="anchor" aria-label="anchor" href="#creating--managing-agents"></a>
 </h3>
 <p>Agents are created by instantiating the <code>agent</code> class. There are a number of agent properties that can be passed to the constructor.</p>
-<p><code>{r} test_model &lt;- function(current_state, previous_state, model_data, agent_mgr, resource_mgr) {   mother &lt;- agent$new(first_name="Kirsten", last_name="Taylor", age=9125)   father &lt;- agent$new(first_name="Joshua", last_name="Thompson", age=7300)   daughter &lt;- agent$new(first_name="Mariylyyn", last_name="Thompson", age=10220) }</code></p>
+<p><code>{r} test_model &lt;- function(current_state, previous_state, model_data, agent_mgr, resource_mgr, village_mgr) {   mother &lt;- agent$new(first_name="Kirsten", last_name="Taylor", age=9125)   father &lt;- agent$new(first_name="Joshua", last_name="Thompson", age=7300)   daughter &lt;- agent$new(first_name="Mariylyyn", last_name="Thompson", age=10220) }</code></p>
 <p>To add agents to the simulation, use the provided <code>agent_mgr</code> object to call <code>add_agent</code>. Because the classes are R6, the object can be modified after being added to the manager and the changes will be persisted without needing to re-add the villager. For example, setting a daughter’s mother and her father below. Note that the standard way is to modify the properties <em>beforehand</em>, although not strictly necessary.</p>
-<p><code>{r} test_model &lt;- function(current_state, previous_state, model_data, agent_mgr, resource_mgr) {   agent_mgr &lt;- agent_manager$new()   agent_mgr$add_agent(mother, father, daughter)   daughter$mother_id &lt;- mother$identifier   daughter$father_id &lt;- father$identifier }</code></p>
+<p><code>{r} test_model &lt;- function(current_state, previous_state, model_data, agent_mgr, resource_mgr, village_mgr) {   agent_mgr &lt;- agent_manager$new()   agent_mgr$add_agent(mother, father, daughter)   daughter$mother_id &lt;- mother$identifier   daughter$father_id &lt;- father$identifier }</code></p>
 <p>The agent manager can also be used to pair agents, representative of a relationship or social bond.</p>
 <pre><code><span><span class="va">agent_mgr</span><span class="op">$</span><span class="va">agent_mgr</span><span class="op">$</span><span class="fu">connect_agents</span><span class="op">(</span><span class="va">mother</span>, <span class="va">father</span><span class="op">)</span></span></code></pre>
 </div>
@@ -141,7 +144,7 @@
 <h3 id="creating--managing-resources">Creating &amp; Managing Resources<a class="anchor" aria-label="anchor" href="#creating--managing-resources"></a>
 </h3>
 <p>Resources are similar to agents in that they’re both R6 classes, are instantiated similarly, and are also managed by an object passed into the model. An example of creating resources and adding them to the simulation is given below.</p>
-<pre><code><span><span class="va">test_model</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">current_state</span>, <span class="va">previous_state</span>, <span class="va">model_data</span>, <span class="va">agent_mgr</span>, <span class="va">resource_mgr</span><span class="op">)</span> <span class="op">{</span></span>
+<pre><code><span><span class="va">test_model</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">current_state</span>, <span class="va">previous_state</span>, <span class="va">model_data</span>, <span class="va">agent_mgr</span>, <span class="va">resource_mgr</span>, <span class="va">village_mgr</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">corn_resource</span> <span class="op">&lt;-</span> <span class="va"><a href="reference/resource.html">resource</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>name<span class="op">=</span><span class="st">"corn"</span>, quantity <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span>  <span class="va">fish_resource</span> <span class="op">&lt;-</span> <span class="va"><a href="reference/resource.html">resource</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>name<span class="op">=</span><span class="st">"fish"</span>, quantity <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span>
 <span>  <span class="va">corn_resource</span><span class="op">$</span><span class="va">quantity</span><span class="op">=</span><span class="fl">5</span></span>
@@ -206,7 +209,7 @@
 <p># Create the resources corn_resource &lt;- resource<span class="math inline">$new(name="corn", quantity = 10)
   fish_resource &lt;- resource$</span>new(name=“fish”, quantity = 15)</p>
 <p># Add the resources to the manager resource_mgr$add_resource(corn_resource, fish_resource) }</p>
-<p>test_model &lt;- function(current_state, previous_state, model_data, agent_mgr, resource_mgr) { print(paste(“Step:”, current_state<span class="math inline"><em>s</em><em>t</em><em>e</em><em>p</em>))<em>f</em><em>o</em><em>r</em>(<em>a</em><em>g</em><em>e</em><em>n</em><em>t</em><em>i</em><em>n</em><em>a</em><em>g</em><em>e</em><em>n</em><em>t</em><sub><em>m</em></sub><em>g</em><em>r</em></span>get_living_agents()) { agent<span class="math inline"><em>a</em><em>g</em><em>e</em> &lt;  − <em>a</em><em>g</em><em>e</em><em>n</em><em>t</em></span>age+1 if (agent<span class="math inline">$age &gt;= 4383) {
+<p>test_model &lt;- function(current_state, previous_state, model_data, agent_mgr, resource_mgr, village_mgr) { print(paste(“Step:”, current_state<span class="math inline"><em>s</em><em>t</em><em>e</em><em>p</em>))<em>f</em><em>o</em><em>r</em>(<em>a</em><em>g</em><em>e</em><em>n</em><em>t</em><em>i</em><em>n</em><em>a</em><em>g</em><em>e</em><em>n</em><em>t</em><sub><em>m</em></sub><em>g</em><em>r</em></span>get_living_agents()) { agent<span class="math inline"><em>a</em><em>g</em><em>e</em> &lt;  − <em>a</em><em>g</em><em>e</em><em>n</em><em>t</em></span>age+1 if (agent<span class="math inline">$age &gt;= 4383) {
       agent$</span>profession &lt;- “Farmer” } } }</p>
 <p>small_village &lt;- village<span class="math inline">$new("Test Model", initial_condition, test_model)
 simulator &lt;- simulation$</span>new(4745, list(small_village)) simulator$run_model()</p>
@@ -219,8 +222,9 @@ To demonstrate programatically creating villagers, consider the model below that
 - Every even day, two new villagers are created
 - Every odd day, one villager dies
 </code></pre>
-<p>library(villager) current_day &lt;- current_state<span class="math inline">$step
-    print(current_day)
+<p>initial_condition &lt;- function(current_state, model_data, agent_mgr, resource_mgr) { for (i in 1:10) { name &lt;- runif(1, 0.0, 100) new_agent &lt;- agent<span class="math inline">$new(first_name &lt;- name, last_name &lt;- "Smith")
+      agent_mgr$</span>add_agent(new_agent) } }</p>
+<p>model &lt;- function(current_state, previous_state, model_data, agent_mgr, resource_mgr, village_mgr) { current_day &lt;- current_state<span class="math inline">$step
     if((current_day%%2) == 0) {
       # Then it's an even day
       # Create two new agents whose first names are random numbers
@@ -233,7 +237,7 @@ To demonstrate programatically creating villagers, consider the model below that
       living_agents &lt;- agent_mgr$</span>get_living_agents() # Kill the first one living_agents[[1]]<span class="math inline">$alive &lt;- FALSE
     }
   }
-  coastal_village &lt;- village$</span>new(“Test village”, initial_condition, model) simulator &lt;- simulation<span class="math inline"><em>n</em><em>e</em><em>w</em>(4,<em>v</em><em>i</em><em>l</em><em>l</em><em>a</em><em>g</em><em>e</em><em>s</em>=<em>l</em><em>i</em><em>s</em><em>t</em>(<em>c</em><em>o</em><em>a</em><em>s</em><em>t</em><em>a</em><em>l</em><sub><em>v</em></sub><em>i</em><em>l</em><em>l</em><em>a</em><em>g</em><em>e</em>))<em>s</em><em>i</em><em>m</em><em>u</em><em>l</em><em>a</em><em>t</em><em>o</em><em>r</em></span>run_model() mgr &lt;- simulator<span class="math inline"><em>v</em><em>i</em><em>l</em><em>l</em><em>a</em><em>g</em><em>e</em><em>s</em>[[1]]</span>agent_mgr ```</p>
+  coastal_village &lt;- village$</span>new(“Test village”, initial_condition, model) simulator &lt;- simulation<span class="math inline"><em>n</em><em>e</em><em>w</em>(4,<em>v</em><em>i</em><em>l</em><em>l</em><em>a</em><em>g</em><em>e</em><em>s</em>=<em>l</em><em>i</em><em>s</em><em>t</em>(<em>c</em><em>o</em><em>a</em><em>s</em><em>t</em><em>a</em><em>l</em><sub><em>v</em></sub><em>i</em><em>l</em><em>l</em><em>a</em><em>g</em><em>e</em>))<em>s</em><em>i</em><em>m</em><em>u</em><em>l</em><em>a</em><em>t</em><em>o</em><em>r</em></span>run_model() ```</p>
 </div>
 </div>
 <div class="section level2">

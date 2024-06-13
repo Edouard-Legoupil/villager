@@ -40,7 +40,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">villager</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.2.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.0.0</span>
       </span>
     </div>
 
@@ -67,6 +67,9 @@
     </li>
     <li>
       <a href="../articles/forced_displacement.html">Simulating Forced Displacement</a>
+    </li>
+    <li>
+      <a href="../articles/village-village-interactions.html">village-village-interaction</a>
     </li>
   </ul>
 </li>
@@ -137,8 +140,8 @@ box of the simulation area is shown on the map below.</p>
 <span><span class="fu">leaflet</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/leaflet/reference/leaflet.html" class="external-link">leaflet</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu">leaflet</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/leaflet/reference/map-layers.html" class="external-link">addTiles</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>  <span class="co"># Add default OpenStreetMap map tiles</span></span>
 <span>  <span class="fu">leaflet</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/leaflet/reference/map-layers.html" class="external-link">addMarkers</a></span> <span class="op">(</span>data <span class="op">=</span> <span class="va">bounds</span><span class="op">)</span> <span class="co"># Add agent locations</span></span></code></pre></div>
-<div class="leaflet html-widget html-fill-item" id="htmlwidget-7f813ae696eff90b117f" style="width:700px;height:432.632880098888px;"></div>
-<script type="application/json" data-for="htmlwidget-7f813ae696eff90b117f">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addTiles","args":["https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",null,null,{"minZoom":0,"maxZoom":18,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false,"attribution":"&copy; <a href=\"https://openstreetmap.org/copyright/\">OpenStreetMap<\/a>,  <a href=\"https://opendatacommons.org/licenses/odbl/\">ODbL<\/a>"}]},{"method":"addMarkers","args":[[40.772457,40.772457,40.77143,40.77143],[-73.975962,-73.974053,-73.975962,-73.974053],null,null,null,{"interactive":true,"draggable":false,"keyboard":true,"title":"","alt":"","zIndexOffset":0,"opacity":1,"riseOnHover":false,"riseOffset":250},null,null,null,null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]}],"limits":{"lat":[40.77143,40.772457],"lng":[-73.975962,-73.974053]}},"evals":[],"jsHooks":[]}</script>
+<div class="leaflet html-widget html-fill-item" id="htmlwidget-fccc89f40300ffc76346" style="width:700px;height:432.632880098888px;"></div>
+<script type="application/json" data-for="htmlwidget-fccc89f40300ffc76346">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addTiles","args":["https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",null,null,{"minZoom":0,"maxZoom":18,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false,"attribution":"&copy; <a href=\"https://openstreetmap.org/copyright/\">OpenStreetMap<\/a>,  <a href=\"https://opendatacommons.org/licenses/odbl/\">ODbL<\/a>"}]},{"method":"addMarkers","args":[[40.772457,40.772457,40.77143,40.77143],[-73.975962,-73.974053,-73.975962,-73.974053],null,null,null,{"interactive":true,"draggable":false,"keyboard":true,"title":"","alt":"","zIndexOffset":0,"opacity":1,"riseOnHover":false,"riseOffset":250},null,null,null,null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]}],"limits":{"lat":[40.77143,40.772457],"lng":[-73.975962,-73.974053]}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div class="section level3">
 <h3 id="extended-agent">Extended Agent<a class="anchor" aria-label="anchor" href="#extended-agent"></a>
@@ -250,7 +253,7 @@ the boundary-thus avoiding stepping outside.</p>
 agents other than itself. If it is, $1 is reduced from its resource
 cache and is added to the neighbor agent.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">test_model</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">current_state</span>, <span class="va">previous_state</span>, <span class="va">model_data</span>, <span class="va">agent_mgr</span>, <span class="va">resource_mgr</span><span class="op">)</span> <span class="op">{</span></span>
+<code class="sourceCode R"><span><span class="va">test_model</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">current_state</span>, <span class="va">previous_state</span>, <span class="va">model_data</span>, <span class="va">agent_mgr</span>, <span class="va">resource_mgr</span>, <span class="va">village_mgr</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="co"># Loop over each agent and move them</span></span>
 <span>  <span class="kw">for</span> <span class="op">(</span><span class="va">agent</span> <span class="kw">in</span> <span class="va">agent_mgr</span><span class="op">$</span><span class="fu">get_living_agents</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="co"># Generate new coordinates</span></span>

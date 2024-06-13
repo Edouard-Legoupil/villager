@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">villager</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.2.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.0.0</span>
       </span>
     </div>
 
@@ -42,6 +42,9 @@
     </li>
     <li>
       <a href="../articles/forced_displacement.html">Simulating Forced Displacement</a>
+    </li>
+    <li>
+      <a href="../articles/village-village-interactions.html">village-village-interaction</a>
     </li>
   </ul></li>
       </ul><ul class="nav navbar-nav navbar-right"><li>
@@ -118,16 +121,16 @@ Creates a new , empty, resource manager for a village.</p></dd>
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 
-<ul><li><p><a href="#method-new"><code>resource_manager$new()</code></a></p></li>
-<li><p><a href="#method-get_resources"><code>resource_manager$get_resources()</code></a></p></li>
-<li><p><a href="#method-get_resource"><code>resource_manager$get_resource()</code></a></p></li>
-<li><p><a href="#method-add_resource"><code>resource_manager$add_resource()</code></a></p></li>
-<li><p><a href="#method-remove_resource"><code>resource_manager$remove_resource()</code></a></p></li>
-<li><p><a href="#method-get_resource_index"><code>resource_manager$get_resource_index()</code></a></p></li>
-<li><p><a href="#method-get_states"><code>resource_manager$get_states()</code></a></p></li>
-<li><p><a href="#method-load"><code>resource_manager$load()</code></a></p></li>
-<li><p><a href="#method-clone"><code>resource_manager$clone()</code></a></p></li>
-</ul></div><p></p><hr><a id="method-new"></a><div class="section">
+<ul><li><p><a href="#method-resource_manager-new"><code>resource_manager$new()</code></a></p></li>
+<li><p><a href="#method-resource_manager-get_resources"><code>resource_manager$get_resources()</code></a></p></li>
+<li><p><a href="#method-resource_manager-get_resource"><code>resource_manager$get_resource()</code></a></p></li>
+<li><p><a href="#method-resource_manager-add_resource"><code>resource_manager$add_resource()</code></a></p></li>
+<li><p><a href="#method-resource_manager-remove_resource"><code>resource_manager$remove_resource()</code></a></p></li>
+<li><p><a href="#method-resource_manager-get_resource_index"><code>resource_manager$get_resource_index()</code></a></p></li>
+<li><p><a href="#method-resource_manager-get_states"><code>resource_manager$get_states()</code></a></p></li>
+<li><p><a href="#method-resource_manager-load"><code>resource_manager$load()</code></a></p></li>
+<li><p><a href="#method-resource_manager-clone"><code>resource_manager$clone()</code></a></p></li>
+</ul></div><p></p><hr><a id="method-resource_manager-new"></a><div class="section">
 <h3 id="method-new-">Method <code>new()</code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
 <p>Get a new instance of a resource_manager</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
@@ -144,7 +147,7 @@ Gets all of the managed resources</p></dd>
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-get_resources"></a><div class="section">
+</div><p></p><hr><a id="method-resource_manager-get_resources"></a><div class="section">
 <h3 id="method-get-resources-">Method <code>get_resources()</code><a class="anchor" aria-label="anchor" href="#method-get-resources-"></a></h3>
 
 <div class="section">
@@ -158,7 +161,7 @@ Gets all of the managed resources</p></dd>
 Gets a resource given a resource name</p>
 </div>
 
-</div><p></p><hr><a id="method-get_resource"></a><div class="section">
+</div><p></p><hr><a id="method-resource_manager-get_resource"></a><div class="section">
 <h3 id="method-get-resource-">Method <code>get_resource()</code><a class="anchor" aria-label="anchor" href="#method-get-resource-"></a></h3>
 
 <div class="section">
@@ -180,18 +183,18 @@ Gets a resource given a resource name</p>
 Adds a resource to the manager.</p>
 </div>
 
-</div><p></p><hr><a id="method-add_resource"></a><div class="section">
+</div><p></p><hr><a id="method-resource_manager-add_resource"></a><div class="section">
 <h3 id="method-add-resource-">Method <code>add_resource()</code><a class="anchor" aria-label="anchor" href="#method-add-resource-"></a></h3>
 
 <div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">resource_manager</span><span class="op">$</span><span class="fu">add_resource</span><span class="op">(</span><span class="va">new_resource</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">resource_manager</span><span class="op">$</span><span class="fu">add_resource</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>new_resource</code></dt>
-<dd><p>The resource to add</p></dd>
+<p></p><div class="arguments"><dl><dt><code>...</code></dt>
+<dd><p>The resources to add</p></dd>
 
 
 </dl><p></p></div>
@@ -202,7 +205,7 @@ Adds a resource to the manager.</p>
 Removes a resource from the manager</p>
 </div>
 
-</div><p></p><hr><a id="method-remove_resource"></a><div class="section">
+</div><p></p><hr><a id="method-resource_manager-remove_resource"></a><div class="section">
 <h3 id="method-remove-resource-">Method <code>remove_resource()</code><a class="anchor" aria-label="anchor" href="#method-remove-resource-"></a></h3>
 
 <div class="section">
@@ -224,7 +227,7 @@ Removes a resource from the manager</p>
 Returns the index of a resource in the internal resource list</p>
 </div>
 
-</div><p></p><hr><a id="method-get_resource_index"></a><div class="section">
+</div><p></p><hr><a id="method-resource_manager-get_resource_index"></a><div class="section">
 <h3 id="method-get-resource-index-">Method <code>get_resource_index()</code><a class="anchor" aria-label="anchor" href="#method-get-resource-index-"></a></h3>
 
 <div class="section">
@@ -246,7 +249,7 @@ Returns the index of a resource in the internal resource list</p>
 Returns a data.frame where each row is a resource.</p>
 </div>
 
-</div><p></p><hr><a id="method-get_states"></a><div class="section">
+</div><p></p><hr><a id="method-resource_manager-get_states"></a><div class="section">
 <h3 id="method-get-states-">Method <code>get_states()</code><a class="anchor" aria-label="anchor" href="#method-get-states-"></a></h3>
 
 <div class="section">
@@ -265,7 +268,7 @@ Returns a data.frame where each row is a resource.</p>
 Loads a csv file of resources into the manager</p>
 </div>
 
-</div><p></p><hr><a id="method-load"></a><div class="section">
+</div><p></p><hr><a id="method-resource_manager-load"></a><div class="section">
 <h3 id="method-load-">Method <code><a href="https://rdrr.io/r/base/load.html" class="external-link">load()</a></code><a class="anchor" aria-label="anchor" href="#method-load-"></a></h3>
 
 <div class="section">
@@ -286,7 +289,7 @@ Loads a csv file of resources into the manager</p>
 <p>None</p>
 </div>
 
-</div><p></p><hr><a id="method-clone"></a><div class="section">
+</div><p></p><hr><a id="method-resource_manager-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
 <h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>

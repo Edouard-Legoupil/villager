@@ -40,7 +40,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">villager</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.2.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">2.0.0</span>
       </span>
     </div>
 
@@ -67,6 +67,9 @@
     </li>
     <li>
       <a href="../articles/forced_displacement.html">Simulating Forced Displacement</a>
+    </li>
+    <li>
+      <a href="../articles/village-village-interactions.html">village-village-interaction</a>
     </li>
   </ul>
 </li>
@@ -230,7 +233,7 @@ rather than the library provided <code>agent</code> class.</p>
 <p>Each day, the model picks a number between 0.0000001 and 0.0000003
 and increments <code>gps_coordinate</code> on the agent.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">test_model</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">current_state</span>, <span class="va">previous_state</span>, <span class="va">model_data</span>, <span class="va">agent_mgr</span>, <span class="va">resource_mgr</span><span class="op">)</span> <span class="op">{</span></span>
+<code class="sourceCode R"><span><span class="va">test_model</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">current_state</span>, <span class="va">previous_state</span>, <span class="va">model_data</span>, <span class="va">agent_mgr</span>, <span class="va">resource_mgr</span>, <span class="va">village_mgr</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="co"># Loop over all the agents (just one at the moment)</span></span>
 <span>  <span class="kw">for</span> <span class="op">(</span><span class="va">agent</span> <span class="kw">in</span> <span class="va">agent_mgr</span><span class="op">$</span><span class="fu">get_living_agents</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="co"># Generate new coordinates</span></span>
@@ -275,8 +278,8 @@ days.</p>
 <span><span class="fu">leaflet</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/leaflet/reference/leaflet.html" class="external-link">leaflet</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu">leaflet</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/leaflet/reference/map-layers.html" class="external-link">addTiles</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>  <span class="co"># Add default OpenStreetMap map tiles</span></span>
 <span>  <span class="fu">leaflet</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/leaflet/reference/map-layers.html" class="external-link">addMarkers</a></span> <span class="op">(</span>data <span class="op">=</span> <span class="va">agent_location</span><span class="op">)</span> <span class="co"># Add agent locations</span></span></code></pre></div>
-<div class="leaflet html-widget html-fill-item" id="htmlwidget-618d4946e60fc4876844" style="width:700px;height:432.632880098888px;"></div>
-<script type="application/json" data-for="htmlwidget-618d4946e60fc4876844">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addTiles","args":["https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",null,null,{"minZoom":0,"maxZoom":18,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false,"attribution":"&copy; <a href=\"https://openstreetmap.org/copyright/\">OpenStreetMap<\/a>,  <a href=\"https://opendatacommons.org/licenses/odbl/\">ODbL<\/a>"}]},{"method":"addMarkers","args":[[33.90365740237911,33.92597431210023,33.94870272455424,33.96078627185584,33.97461148030744,33.99904493499701,34.0192091811324,34.03027779597011,34.0517484569984,34.06366247574021],[-118.0334779970288,-118.0094293945037,-117.9952120751316,-117.9682549232883,-117.9535703900397,-117.9295079200981,-117.9101017860403,-117.8901407181505,-117.8615463603461,-117.844426980171],null,null,null,{"interactive":true,"draggable":false,"keyboard":true,"title":"","alt":"","zIndexOffset":0,"opacity":1,"riseOnHover":false,"riseOffset":250},null,null,null,null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]}],"limits":{"lat":[33.90365740237911,34.06366247574021],"lng":[-118.0334779970288,-117.844426980171]}},"evals":[],"jsHooks":[]}</script>
+<div class="leaflet html-widget html-fill-item" id="htmlwidget-bd92bc694e21b82b3e82" style="width:700px;height:432.632880098888px;"></div>
+<script type="application/json" data-for="htmlwidget-bd92bc694e21b82b3e82">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addTiles","args":["https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",null,null,{"minZoom":0,"maxZoom":18,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false,"attribution":"&copy; <a href=\"https://openstreetmap.org/copyright/\">OpenStreetMap<\/a>,  <a href=\"https://opendatacommons.org/licenses/odbl/\">ODbL<\/a>"}]},{"method":"addMarkers","args":[[33.89061338704698,33.90842701487862,33.92286682668295,33.94598355733477,33.97436098254439,33.99703808391154,34.02383324194387,34.0371442919007,34.05839487863857,34.07985319335632],[-118.0277440224388,-118.0170895228615,-117.9935548248641,-117.976644320184,-117.9485023190301,-117.9374989258485,-117.923132931356,-117.909775480054,-117.8911171119508,-117.8643772036988],null,null,null,{"interactive":true,"draggable":false,"keyboard":true,"title":"","alt":"","zIndexOffset":0,"opacity":1,"riseOnHover":false,"riseOffset":250},null,null,null,null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]}],"limits":{"lat":[33.89061338704698,34.07985319335632],"lng":[-118.0277440224388,-117.8643772036988]}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </div>
