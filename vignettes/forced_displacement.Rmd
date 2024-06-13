@@ -104,7 +104,8 @@ To implement a simulation within such scenario, some data will be required:
     - Work Opportunity
     - Presence of social networks
 
-
+Note that this example is designed  as a template that can be easily modified to incorporate additional factors like travel cost, language barriers, or policy changes in destination countries.
+ 
 ## Modeling Steps
 
 The goal is to calculate the number of agents remaining in the origin country (A) and those who migrated to countries B, C, and D under a series of assumptions both for the people and the environment (aka countries characteristics). Country characteristics can be measured by indexes measuring for instance Safety, Resources, Opportunities, existence of Citizen network from Country A and available Support Interventions (for instance "Resource Distribution" like Cash allowance, "Public services" like free access to School and Education or "Legal Documentation" to access formal labor employment)
@@ -127,20 +128,28 @@ set.seed(123)  # For reproducible simulations
 
 ```
 
+### Iteration #1: Random Country Selection
 
+#### 1/5. Define Agents 
 
-### 1/5. Define Agents 
-Agents representing citizens of Country A that have specific attributes.
+Agents representing people of Country A that are at potential risk of displacement have specific attributes that can influence their decision to move
 
-Citizens in country A with for instance the following agent characteristics:  
+__Demographic__
 -  `age`: Random between 20 and 65.
--  `health`: Random value from a normal distribution.
--  `skills`: "Low", "Medium", or "High" (categorical).
--  `family`: True if the agent has family (binary).
--  `risk_tolerance`: Random value between 0 and 1 (uniform distribution).
--  `social_network`: Boolean vector indicating connections only within country A (if family is present).
+-  `family`: True if the agent has family (binary).  
 
-```{r}
+__Basic Needs___
+-  `food_security`: Random value from a normal distribution.
+-  `health_condition`: Random value from a normal distribution.  
+
+__Livelihood__
+-  `employment`: "formal", "informal" (categorical).
+-  `asset`: Random value from a normal distribution. 
+
+__Environment__
+-  `risk_tolerance`: Random value from a normal distribution.
+
+```{r agent_v1}
 # A class that extends the villager agent class to have skills, risk tolerance, and country history
 person <- R6::R6Class("agent",
                          inherit = villager::agent,
@@ -158,6 +167,7 @@ person <- R6::R6Class("agent",
                            partner = NULL,
                            profession = NULL,
                            skills = NULL,
+                           wealth = NULL,
                            risk_tolerance = NULL,
                            country_history = NULL,
 
@@ -174,6 +184,7 @@ person <- R6::R6Class("agent",
                                                  alive = TRUE,
                                                  health = 100,
                                                  skills = NA,
+                                                 wealth = NA,
                                                  risk_tolerance = NA,
                                                  country_history = NA) {
 
@@ -193,6 +204,7 @@ person <- R6::R6Class("agent",
 
                              # Set the extended class properties
                              self$skills <- skills
+                             self$wealth <- wealth
                              self$risk_tolerance <- risk_tolerance
                              self$country_history <- country_history
                            },
@@ -211,6 +223,7 @@ person <- R6::R6Class("agent",
                                partner = self$partner,
                                profession = self$profession,
                                skills = self$skills,
+                               wealth = self$wealth,
                                risk_tolerance = self$risk_tolerance,
                                country_history = paste(self$country_history, collapse = "-to-")
                              )
@@ -221,44 +234,53 @@ person <- R6::R6Class("agent",
 
 ``` 
  
-### 2/5. Set up Initial Conditions
+#### 2/5. Set up Initial Conditions
 
- Set up the environment with Country of origin A and destination countries (`destination_B`, `destination_C`, `destination_D`), aka the initial condition. Then a synthetic Population is generated with 2000 agents for the conflict country (`origin_A`) with the  attributes defined above.
+We'll create different initial conditions for each country: i.e. set up the environment with Country of origin A and destination countries (`destination_B`, `destination_C`, `destination_D`), aka the initial condition. 
 
 
-```{r}
-initial_condition <- function(current_state, 
-                              model_data,
-                              agent_mgr, 
-                              resource_mgr) {
-  # Create a normal distribution for health, centered around 80 (1 (nearly dead) to 100 (very healthy))
-  health_norm <- rnorm(2000, mean=80 , sd=5)
-  # Create a normal distribution for risk tolerance, centered around 60 (1 (tolerate risk) to 100 (do not support insecurity))
-  risk_norm <- rnorm(2000, mean = 60, sd=15)
-  # Create 2,000 people
-  for(i in 1:2000) {
+There's some shared code in creating the agents, pairing them, etc. Rather than copy and pasting them in each initial condition function, define them here and call them in the initial condition function. This works through R's way of scoping variables (can define the functions outside the scope of the initial conditions, and call them from within the class).
+
+```{r helper_create_initial_population}
+#' create_initial_population
+#' 
+#' Creates an initial population of agents with some set of properties
+#' @param agent_mgr The initial condition's agent manager
+#' @param agent_count The number of agents to create
+#' @return the initial step for the agent manager 
+create_initial_population <- function(agent_mgr, agent_count) {
+  # Create a normal distribution for health, risk and wealth
+  health_norm <- rnorm(agent_count, mean=80 , sd=5)
+  risk_norm <- rnorm(agent_count, mean = 0.6, sd=0.25)
+  wealth_norm <- rnorm(agent_count, mean = 0.2, sd=0.25)
+  skills_v <- c("Low", "Medium", "High")
+  # Create --agent_count-- people
+  for(i in 1:agent_count) {
     # Assume two genders (female/male)
     gender = 'female'
     # Every even number we assign a male, getting a 50/50 gender split
-    if((i %% 2) == 0) {
-      gender = 'male'
-    }
-    skills <- c("Low", "Medium", "High")
-    # Get a number from the distribution and bound the value between 0 and 1
-    # Bug: The distribution is picking values exclusively less than 0 and greater than 1
-    # This is leading to the population having either 0 or 1 tolerance.
-    risk <- round(risk_norm[i])
-    risk <- pmin(risk, 1)
-    risk <- pmax(risk, 0)
+    if((i %% 2) == 0) {   gender = 'male'  }
     new_person <- person$new(age=round(runif(1,7300,23725)), 
                              gender=gender, 
                              health=health_norm[i], 
-                             risk_tolerance=risk, 
-                             skills=sample(skills, 1), 
+                             risk_tolerance=risk_norm[i], 
+                             skills=sample(skills_v, 1), 
+                             wealth=wealth_norm[i], 
                              country_history=c("origin_A"))
     agent_mgr$add_agent(new_person)
   }
+  
+  return(agent_mgr)
+}
+```
 
+```{r helper_create_marriage_couples}
+#' create_marriage_couples 
+#' 
+#' Takes an agent manager and pairs some agents together in marriage
+#' @param agent_mgr The initial condition's agent manager
+#' @return the initial step for the agent manager 
+create_marriage_couples <- function(agent_mgr) {
   # Randomly pair them, based on made up rules 
   for (single_person in agent_mgr$get_living_agents()) {
     # Person has to be single
@@ -283,23 +305,38 @@ initial_condition <- function(current_state,
       }
     }
   }
-  # Add a random number of children to married couples. This will allow for the
-  # idea of family members residing in other countries
-  for (potential_parent_person in agent_mgr$get_living_agents()) {
+  return(agent_mgr)
+}
+```
+
+```{r function-create_children}
+#' create_children 
+#' 
+#' Takes an agent manager, takes paired agents, creates and pairs children
+#' @param agent_mgr The initial condition's agent manager
+#' @param agent_count The number of agents to create
+#' @return the initial step for the agent manager 
+create_children <- function(agent_mgr, agent_count) {
+    skills_v <- c("Low", "Medium", "High")
+    # Get a number from the distribution and bound the value between 0 and 1
+    # Create a normal distribution for health, risk and wealth
+    health_norm <- rnorm(agent_count, mean=80 , sd=5)
+    risk_norm <- rnorm(agent_count, mean = 60, sd=15)
+    wealth_norm <- rnorm(agent_count, mean = 0.2, sd=0.25)
+  
+    for (potential_parent_person in agent_mgr$get_living_agents()) {
     # Make sure they're married and no older than... 55?
     if(!is.na(potential_parent_person$partner) && potential_parent_person$age < 20075) {
       # Some small chance they have kids
       if (runif(1,0,10) >= 8) {
         # Add three kids
         for(i in 1:3) {
-          risk <- round(risk_norm[i])
-          risk <- pmin(risk, 1)
-          risk <- pmax(risk, 0)
           new_child <- person$new(
             age=8030, 
-            health = health_norm[i], 
-            risk_tolerance = risk, 
-            skills=sample(skills, 1), 
+            #health = health_norm[i], 
+            #risk_tolerance = risk_norm[i], 
+            #wealth = wealth_norm[i], 
+            #skills=c("Low"), 
             country_history = c("origin_A")
           )
           agent_mgr$add_agent(new_child)
@@ -321,60 +358,37 @@ initial_condition <- function(current_state,
     }
   }
 }
+```
+
+Then a synthetic Population is generated with for instance 2000 agents for the conflict country (`origin_A`) with the  attributes defined above.
+
+```{r initial_v1}
+initial_condition <- function(current_state, 
+                              model_data,
+                              agent_mgr, 
+                              resource_mgr) {
+  agent_count <- 2000
+  # Create the initial population
+  create_initial_population(agent_mgr, agent_count)
+  # Create couples
+  create_marriage_couples(agent_mgr)
+  # Add a random number of children to married couples.
+  create_children(agent_mgr, agent_count)
+  
+
+}
 
 ```
 
+#### 3/5. Design the Model
 
-
-### 3/5. Design the Model
-
-A score for each destination country based on safety, resources, affordability (based on skills), potential social network connection in the destination (if applicable), and opportunity for support, etc.
-
-The agent calculate the attractiveness for each country based then relates it to his own migration propensity and if the threshold is reached, chooses the country with the highest score to migrate to.
-
-```{r}
+```{r model_v1}
 model_forced_displacement <- function(current_state,
                            previous_state, 
                            model_data, 
                            agent_mgr,
                            resource_mgr) {
   print(paste("Step:", current_state$step))
-
-  origin_A_properties = list(
-    living_conditions = 2,
-    safety = 2 ,
-    access_to_healthcare = 2,
-    access_to_education = 2,
-    access_to_work = 1,
-    access_to_cash_allowance = 1,
-    network = 8 )
-  
-  destination_B_properties = list(
-    living_conditions = 7,
-    safety = 6,
-    access_to_healthcare = 7,
-    access_to_education = 7,
-    access_to_work = 3,
-    access_to_cash_allowance = 1,
-    network = 4  )
-  
-  destination_C_properties = list(
-    living_conditions = 3,
-    safety = 2,
-    access_to_healthcare = 2,
-    access_to_education = 2,
-    access_to_work = 1,
-    access_to_cash_allowance = 1,
-    network = 2  )
-  
-  destination_D_properties = list(
-    living_conditions = 4,
-    safety = 4,
-    access_to_healthcare = 4,
-    access_to_education = 5,
-    access_to_work = 3,
-    access_to_cash_allowance = 3,
-    network = 1  )
 
   # Decide whether the person moves from one country to the next
   for (agent in agent_mgr$get_living_agents()) {
@@ -402,15 +416,12 @@ model_forced_displacement <- function(current_state,
 
 ```
 
-
-
-###  4/5. Simulate Displacement  
+####  4/5. Simulate Displacement  
 
 Using those assumptions, simulation can be performed a certain number of times. In each iteration, each agent goes through the decision-making process and potentially updates their location. After each iteration, we can calculate the final population distribution across destination countries. 
- 
 
-```{r message=FALSE, warning=FALSE}
-country_a <- villager::village$new("Displacement_Model",
+```{r simulation_v1, message=FALSE, warning=FALSE}
+country_a <- villager::village$new("Displacement_Model_Random",
                                    initial_condition, 
                                    model_forced_displacement,
                                    person)
@@ -421,51 +432,1040 @@ simulator$run_model()
 ```
 
 
-### 5/5. Analyze Results 
+#### 5/5. Analyze Results 
 
- Note that this example is designed  as a template that can be easily modified to incorporate additional factors like travel cost, language barriers, or policy changes in destination countries.
+Here we see that displacement is done quickly
   
-```{r  fig.height=5, fig.width=8, message=FALSE, warning=FALSE}
+```{r   results_v1, message=FALSE, warning=FALSE, fig.height=5, fig.width=8, message=FALSE, warning=FALSE}
 # Load in data that got save automatically
-agent_data <- readr::read_csv("results/Displacement_Model/agents.csv")
-ressource_data <- readr::read_csv("results/Displacement_Model/resources.csv")
-#brks <- c(0, 0.25, 0.5, 0.75, 1)
-# Filter the results down to just the last day
-ggplot(agent_data |>
-                dplyr::filter( step == simulation_iterations)) +
-  aes(x = forcats::fct_rev(forcats::fct_infreq(country_history)) ) +
-  geom_bar(fill = "#0072BC") +
- # scale_y_continuous(breaks = brks, labels = scales::percent(brks)) +
-  coord_flip() +  
-  labs(
-    title = "Forced Displacement Simulation",
-    subtitle = paste0("Agent Based Modeling Results after ", simulation_iterations, " iterations"),
-    caption = "Dummy Data for illustrative purpose",
-    y = "Percentage of people"  ) +
-  unhcrthemes::theme_unhcr(grid = "X", axis = "Y", axis_title = "X")
-```
-
-```{r  fig.height=5, fig.width=8, message=FALSE, warning=FALSE}
-# Filter the results down to just the last day
-ggplot(agent_data |>
-         dplyr::group_by(country_history,  step) |>
-         dplyr::summarise ( n = dplyr::n())) +
-  aes(x =  step ,  y = n, group = country_history,  color = country_history) +
-  geom_line( size=2 ) + 
-  scale_colour_viridis_d("Displacement", option = "plasma") +
-  scale_x_continuous(  labels = scales::label_number(accuracy =1, scale_cut = scales::cut_short_scale())) +
+agent_data_Random <- readr::read_csv("results/Displacement_Model_Random/agents.csv") 
+ 
+agent_data_Random |>
+  dplyr::group_by(country_history,  step) |>
+  dplyr::summarise ( n = dplyr::n()) |>
+  ggplot(aes(x =  as.factor(step) , 
+             y = n, 
+             fill = country_history)) +
+  geom_bar( stat = "identity" ) + 
+  scale_colour_viridis_d("Displacement", option = "plasma") + 
+  facet_grid(cols = vars(country_history)) +
   labs(
     title = "Simulation Convergence: Population Displacement",
     subtitle = paste0("Agent Based Modeling Results"),
     caption = "Dummy Data for illustrative purpose",
     x = "Simulation Steps"  ) +
-  unhcrthemes::theme_unhcr(grid = "Y", axis = "X", axis_title = "X")
+  unhcrthemes::theme_unhcr(grid = "Y", axis = "X", axis_title = "X", legend = FALSE)
+```
+
+ 
+
+
+### Iteration #2: Random Decision with Random Country Selection
+
+
+#### 3/5. Design the Model
+
+The model shall include some __randomness__ in the decision-making process to make it more realistic: for instance, in each "simulation day", there will be a 40% chance that any agent from the population just actually consider the decision to move...
+
+```{r model_v2}
+model_forced_displacement_random <- function(current_state,
+                                             previous_state, 
+                                             model_data, 
+                                             agent_mgr,
+                                             resource_mgr) {
+  print(paste("Step:", current_state$step))
+
+  # Decide whether the person moves from one country to the next
+  for (agent in agent_mgr$get_living_agents()) {
+    # Age them by a day
+    agent$age <- agent$age+1
+    
+      ## use runif to create some randomness...
+      random_move <- runif(n=1, min=0, max=10)
+      # Each day, there will be a 40% chance that an agent moves  
+      if (random_move >= 6) {
+
+        # Get the most recent country history (where they currently are)
+        if (agent$country_history[length(agent$country_history)] == 'origin_A') {
+          where_to_move <- round(runif(1,1,4))
+          if (where_to_move == 1) {
+            agent$country_history <- append(agent$country_history, "destination_B")
+          }
+          if (where_to_move == 2) {
+            agent$country_history <- append(agent$country_history, "destination_C")
+          }
+          if (where_to_move == 3) {
+            agent$country_history <- append(agent$country_history, "destination_D")
+          }
+          if (where_to_move == 4) {
+            # Stay in origin_A
+          }
+        } ## if still in country of Origin
+      } ## if decide to move  
+  } ## loop around all agents
+}
+
+```
+
+####  4/5. Simulate Displacement  
+
+Let's re-run the simulation but this time with 10 steps
+
+```{r simulation_v2, message=FALSE, warning=FALSE}
+country_a <- villager::village$new("Displacement_Model_Decision",
+                                   initial_condition, 
+                                   model_forced_displacement_random,
+                                   person)
+simulation_iterations <- 10
+simulator <- villager::simulation$new(simulation_iterations ,
+                                      list(country_a))
+simulator$run_model()
+```
+
+
+#### 5/5. Analyze Results 
+
+As we can see now the displacement happens progressively
+
+```{r   results_v2, message=FALSE, warning=FALSE, fig.height=5, fig.width=10, message=FALSE, warning=FALSE}
+# Load in data that got save automatically
+agent_data_Decision <- readr::read_csv("results/Displacement_Model_Decision/agents.csv") 
+ 
+agent_data_Decision |>
+  dplyr::group_by(country_history,  step) |>
+  dplyr::summarise ( n = dplyr::n()) |>
+  ggplot(aes(x =  as.factor(step) , 
+             y = n, 
+             fill = country_history)) +
+  geom_bar( stat = "identity" ) + 
+  scale_colour_viridis_d("Displacement", option = "plasma") + 
+  facet_grid(cols = vars(country_history)) +
+  labs(
+    title = "Simulation Convergence: Population Displacement",
+    subtitle = paste0("Agent Based Modeling Results"),
+    caption = "Dummy Data for illustrative purpose",
+    x = "Simulation Steps"  ) +
+  unhcrthemes::theme_unhcr(grid = "Y", axis = "X", axis_title = "X", legend = FALSE)
+```
+
+ 
+
+
+### Iteration #3: Allocation based on country score
+
+#### 3/5. Design the Model
+
+Now we will define what decision will be made based on the environment of the agent both in  country of origin (`origin_A`)  and destination (`destination_B`, `destination_C`, `destination_D`).
+
+A score for each destination country is built based on the location property: safety, resources, potential social network connection in the destination, and opportunity for support, etc. Note that this score is calculated through a __geometric mean__ in order to avoid compensability, aka avoid that one criteria can fully compensate another one but rather ensure that interactions between criteria are reflected (to know more about compensability in the context of composite index, please review [COIN Week 2023 Step 6. Aggregation](https://knowledge4policy.ec.europa.eu/sites/default/files/COIN_2023_Step%206.%20Aggregation.pdf#page=6))
+
+
+The agent calculate the attractiveness for each country based then relates it to his own migration propensity and if the threshold is reached, chooses the country with the highest score to migrate to.
+
+```{r function-calculate_scores}
+#' calculate_scores
+#' 
+#' Calculate scores for each destination
+#' 
+#' Create a geometric mean of the attractiveness score. 
+#' Geometric mean is used to avoid compensability
+#' @param properties index value to describe the country
+#' @param preferences weight defined by agent individual preference
+#' 
+#' @return score
+calculate_scores <- function(properties, preferences) {
+    # Check if the lengths of the two lists are equal
+    if(length(properties) != length(preferences)) {
+      stop("The lengths of the properties and preferences lists must be equal.")
+    }
+    # Compute the product of the two lists and return the geometric mean
+    score <- exp(mean(log( (unlist(properties) * unlist(preferences)))))
+    return(score)
+  }
+```
+  
+```{r example-calculate_score}
+#calculate_score()
+```
+  
+
+  
+
+```{r model_v3}
+model_forced_displacement_score <- function(current_state,
+                           previous_state, 
+                           model_data, 
+                           agent_mgr,
+                           resource_mgr) {
+  # Show the current simulation step
+  print(paste("Simulation Step:", current_state$step))
+  
+  # Define properties for each location
+  origin_A_properties <- list(
+    living_conditions = 2,
+    safety = 2,
+    access_to_healthcare = 2,
+    access_to_education = 2,
+    access_to_work = 1,
+    access_to_cash_allowance = 1,
+    network = 8
+  )
+  
+  destination_B_properties <- list(
+    living_conditions = 5,
+    safety = 2,
+    access_to_healthcare = 2,
+    access_to_education = 4,
+    access_to_work = 6,
+    access_to_cash_allowance = 1,
+    network = 4
+  )
+  
+  destination_C_properties <- list(
+    living_conditions = 3,
+    safety = 3,
+    access_to_healthcare = 2,
+    access_to_education = 2,
+    access_to_work = 1,
+    access_to_cash_allowance = 6,
+    network = 2
+  )
+  
+  destination_D_properties <- list(
+    living_conditions = 4,
+    safety = 4,
+    access_to_healthcare = 4,
+    access_to_education = 5,
+    access_to_work = 3,
+    access_to_cash_allowance = 3,
+    network = 1
+  )
+  
+  # Assume agent has preferences
+  agent_preferences <- list(
+    living_conditions = 0.2,
+    safety = 0.2,
+    access_to_healthcare = 0.2,
+    access_to_education = 0.1,
+    access_to_work = 0.1,
+    access_to_cash_allowance = 0.1,
+    network = 0.1
+  )
+  
+
+  
+  # Iterate over each living agent
+  for (agent in agent_mgr$get_living_agents()) {
+    # Age the agent by one "simulation day"
+    agent$age <- agent$age + 1
+    
+     ## use runif to create some randomness...
+     random_move <- runif(n=1, min=0, max=10)
+     # Each day, there will be a 40% chance that an agent moves  
+     if (random_move >= 6) {
+    
+    # Calculate scores based on agent's preferences 
+    score_B <- calculate_scores(destination_B_properties, agent_preferences)
+    score_C <- calculate_scores(destination_C_properties, agent_preferences)
+    score_D <- calculate_scores(destination_D_properties, agent_preferences)
+      
+    # Decide where to move based on scores
+    destination_scores <- c(score_B, score_C, score_D)
+    destinations <- c("destination_B", "destination_C", "destination_D")
+    chosen_destination <- destinations[which.max(destination_scores)]
+    
+    
+    if (agent$country_history[length(agent$country_history)] == 'origin_A') {  
+        # Update agent's country history if moving..
+         agent$country_history <- append(agent$country_history, chosen_destination)
+        }
+     } # End if to test if random decision
+    
+  } # End loop over each agent
+  
+} # End model_forced_displacement function
+
+```
+
+####  4/5. Simulate Displacement  
+
+Using those assumptions, simulation can be performed a certain number of times. In each iteration, each agent goes through the decision-making process and potentially updates their location. After each iteration, we can calculate the final population distribution across destination countries. 
+
+```{r simulation_v3, message=FALSE, warning=FALSE}
+country_a <- villager::village$new("Displacement_Model_Score",
+                                   initial_condition, 
+                                   model_forced_displacement_score,
+                                   person)
+simulation_iterations <- 10
+simulator <- villager::simulation$new(simulation_iterations ,
+                                      list(country_a))
+simulator$run_model()
+```
+
+
+#### 5/5. Analyze Results 
+
+As we have created a score and all agents have the same preference, they will all go progressively to the same country
+  
+```{r   results_v3, message=FALSE, warning=FALSE, fig.height=5, fig.width=10, message=FALSE, warning=FALSE}
+# Load in data that got save automatically
+agent_data_Score <- readr::read_csv("results/Displacement_Model_Score/agents.csv") 
+ 
+agent_data_Score |>
+  dplyr::group_by(country_history,  step) |>
+  dplyr::summarise ( n = dplyr::n()) |>
+  ggplot(aes(x =  as.factor(step) , 
+             y = n, 
+             fill = country_history)) +
+  geom_bar( stat = "identity" ) + 
+  scale_colour_viridis_d("Displacement", option = "plasma") + 
+  facet_grid(cols = vars(country_history)) +
+  labs(
+    title = "Simulation Convergence: Population Displacement",
+    subtitle = paste0("Agent Based Modeling Results"),
+    caption = "Dummy Data for illustrative purpose",
+    x = "Simulation Steps"  ) +
+  unhcrthemes::theme_unhcr(grid = "Y", axis = "X", axis_title = "X", legend = FALSE)
+```
+
+ 
+### Iteration #4: Decision based on Agent Specific Agent Preference
+
+#### 3/5. Design the Model
+
+Beside this generic behavior, the model can additionally include specific behavior based on the __specific agent’s preferences__ when calculating the scores for each destination. A agents have different preference, they will consecutively select different place to move to.
+
+The function `modify_preferences_based_on_agent` implements the following: 
+  
+ - the higher is `risk_tolerance`, the higher is the preference to `access_to_work` and the lower is the preference to  `safety`   
+ - if an agent has high `skills`, the more likely he will favor higher `living_conditions`, and inversely if agent has low `skills`, he will give more preference to place with low `living_conditions`.  
+ - if an agent has low `wealth`, he will give preference to place with `access_to_cash_allowance` 
+  - the older is agent the more is preference for `access_to_health` increase, and inersely to `access_to_education`
+ - If an agent has any relative (father, mother, partner or children) that made the decision to move in a particular destination (`country history` is not anymore `origin_A`), the higher will be his preference to the `network`. 
+ 
+
+```{r function-modify_preferences_based_on_agent}
+#' modify_preferences_based_on_agent 
+#' 
+#' Modify preferences based on agent's attributes
+#' Provide the preference for the properties of the country 
+#' (aka the weight to be used for the scocring) but in relation to 
+#' individual descriptor
+#' @param agent
+#' @param base_preferences
+#' 
+#' @return specific_base_preferences 
+modify_preferences_based_on_agent <- function(agent, base_preferences) {
+    # Modify preferences based on agent's risk tolerance
+    if ( !is.na(agent$risk_tolerance) &  agent$risk_tolerance > 0.5) {
+      base_preferences$safety <- base_preferences$safety * 1.5
+      base_preferences$access_to_work <- base_preferences$access_to_work * 0.5
+    } else {
+      base_preferences$safety <- base_preferences$safety * 0.7
+      base_preferences$access_to_work <- base_preferences$access_to_work * 0.2
+    }
+    
+    # Modify preferences based on agent's skills
+    if ( !is.na(agent$skills) & agent$skills == "High") {
+      base_preferences$living_conditions <- base_preferences$living_conditions * 1.5
+    } else {
+      base_preferences$living_conditions <- base_preferences$living_conditions * 0.5
+    }
+    
+    # Modify preferences based on agent's wealth
+    if (  !is.na(agent$wealth) &  agent$wealth > 0.5) {
+      base_preferences$access_to_cash_allowance <- base_preferences$access_to_cash_allowance * 1.5
+    } else {
+      base_preferences$access_to_cash_allowance  <- base_preferences$access_to_cash_allowance * 0.5
+    }
+    
+    # Modify preferences based on agent's age - younger than 55
+    if (  !is.na(agent$age) &  agent$age < 20075) { 
+      base_preferences$access_to_education <- base_preferences$access_to_education * 1.5
+    } else {
+      base_preferences$access_to_education <- base_preferences$access_to_education * 0.5
+    }
+    
+    # Modify preferences based on agent's age - older than 55
+    if (  !is.na(agent$age) & agent$age > 20075) { 
+      base_preferences$access_to_healthcare <- base_preferences$access_to_healthcare * 1.5
+    } else {
+      base_preferences$access_to_healthcare <- base_preferences$access_to_healthcare * 0.5
+    } 
+    
+    # # Modify preferences based on agent's network
+    # if (agent_has_relative_moved(agent)) {
+    #   base_preferences$network <- base_preferences$network * 1.5
+    # }
+    
+    return(base_preferences)
+  }
+
+    # # Helper function to check if any relative has moved
+    # agent_has_relative_moved <- function(agent) {
+    #   # Assuming 'country_history' is a variable that stores the countries each agent's relatives have moved to
+    #   # and 'origin_A' is the original country
+    #   relatives <- c(agent$father_id, agent$mother_id, agent$partner, agent$children)
+    #   for (relative in relatives) {
+    #     if (!is.null(relative) && country_history[relative] != "origin_A") {
+    #       return(TRUE)
+    #     }
+    #   }
+    #   return(FALSE)
+    # }
+```
+  
+```{r example-modify_preferences_based_on_agent}
+#modify_preferences_based_on_agent()
+```
+  
+Now we use this function within the model!
+
+```{r  model_v4}
+model_forced_displacement_preference <- function(current_state,
+                                      previous_state, 
+                                      model_data, 
+                                      agent_mgr,
+                                      resource_mgr) {
+  
+  # Show the current simulation step
+  print(paste("Simulation Step:", current_state$step))
+  
+  # Define properties for each location
+  origin_A_properties <- list(
+    living_conditions = 2,
+    safety = 2,
+    access_to_healthcare = 2,
+    access_to_education = 2,
+    access_to_work = 1,
+    access_to_cash_allowance = 1,
+    network = 8
+  )
+  
+  destination_B_properties <- list(
+    living_conditions = 5,
+    safety = 2,
+    access_to_healthcare = 2,
+    access_to_education = 4,
+    access_to_work = 6,
+    access_to_cash_allowance = 1,
+    network = 4
+  )
+  
+  destination_C_properties <- list(
+    living_conditions = 3,
+    safety = 3,
+    access_to_healthcare = 2,
+    access_to_education = 2,
+    access_to_work = 1,
+    access_to_cash_allowance = 6,
+    network = 2
+  )
+  
+  destination_D_properties <- list(
+    living_conditions = 4,
+    safety = 4,
+    access_to_healthcare = 4,
+    access_to_education = 5,
+    access_to_work = 3,
+    access_to_cash_allowance = 3,
+    network = 1
+  )
+  
+  # Assume agent has preferences
+  agent_preferences <- list(
+    living_conditions = 0.2,
+    safety = 0.2,
+    access_to_healthcare = 0.2,
+    access_to_education = 0.1,
+    access_to_work = 0.1,
+    access_to_cash_allowance = 0.1,
+    network = 0.1
+  )
+   
+  # Iterate over each living agent
+  for (agent in agent_mgr$get_living_agents()) {
+    # Age the agent by one "simulation day"
+    agent$age <- agent$age + 1
+    
+    # Create randomness in the decision-making process
+    if (runif(1, min=0, max=1) < 0.4) { # 40% chance to consider moving
+      
+      # Calculate scores based on agent's preferences and past experiences
+      agent_specific_preferences <- modify_preferences_based_on_agent(agent, agent_preferences)
+     # print(paste0( "agent_preferences", agent_preferences, "\n agent_specific_preferences", agent_specific_preferences, " \n\n--end--\n"))
+      
+      
+      score_B <- calculate_scores(destination_B_properties, agent_specific_preferences)
+      score_C <- calculate_scores(destination_C_properties, agent_specific_preferences)
+      score_D <- calculate_scores(destination_D_properties, agent_specific_preferences)
+      
+      # Decide where to move based on scores
+      destination_scores <- c(score_B, score_C, score_D)
+      destinations <- c("destination_B", "destination_C", "destination_D")
+      chosen_destination <- destinations[which.max(destination_scores)]
+      
+      ## Debugging message... Seems the score are all the same...
+       # print(paste0( "agent_preferences: ", lobstr::tree(agent_preferences), 
+       #               "\n agent_specific_preferences: ", lobstr::tree(agent_specific_preferences),
+       #               " \n\n--score--\n", 
+       #               "destination_B: ", score_B,
+       #               "destination_C: ", score_C,
+       #               "destination_D: ", score_D,
+       #               " \n\n--end--\n"))
+      
+    if (agent$country_history[length(agent$country_history)] == 'origin_A') {  
+        # Update agent's country history if moving..
+         agent$country_history <- append(agent$country_history, chosen_destination)
+        }
+      
+    } # End if agent considers moving
+    
+  } # End loop over each agent
+  
+} # End model_forced_displacement function
+```
+
+####  4/5. Simulate Displacement  
+
+Using those assumptions, simulation can be performed a certain number of times. In each iteration, each agent goes through the decision-making process and potentially updates their location. After each iteration, we can calculate the final population distribution across destination countries. 
+
+```{r simulation_v4, message=FALSE, warning=FALSE}
+country_a <- villager::village$new("Displacement_Model_Preference",
+                                   initial_condition, 
+                                   model_forced_displacement_preference,
+                                   person)
+simulation_iterations <- 10
+simulator <- villager::simulation$new(simulation_iterations ,
+                                      list(country_a))
+simulator$run_model()
+```
+
+
+#### 5/5. Analyze Results 
+ 
+  
+```{r results_v4, message=FALSE, warning=FALSE, fig.height=5, fig.width=10, message=FALSE, warning=FALSE}
+# Load in data that got save automatically
+agent_data_Preference <- readr::read_csv("results/Displacement_Model_Preference/agents.csv")
+agent_data_Preference |>
+  dplyr::group_by(country_history,  step) |>
+  dplyr::summarise ( n = dplyr::n()) |>
+  ggplot(aes(x =  as.factor(step) , 
+             y = n, 
+             fill = country_history)) +
+  geom_bar( stat = "identity" ) + 
+  scale_colour_viridis_d("Displacement", option = "plasma") + 
+  facet_grid(cols = vars(country_history)) +
+  labs(
+    title = "Simulation Convergence: Population Displacement",
+    subtitle = paste0("Agent Based Modeling Results"),
+    caption = "Dummy Data for illustrative purpose",
+    x = "Simulation Steps"  ) +
+  unhcrthemes::theme_unhcr(grid = "Y", axis = "X", axis_title = "X", legend = FALSE)
+``` 
+
+
+
+
+### Iteration #5: Decisions based on Retro-actions on destination countries
+
+#### 3/5. Design the Model
+
+The added value of the simulation comes with the capacity to add __retro-actions__, aka the decisions of the agents actually influence the environment and the properties of the locations can change over time:  
+
+ - For instance, `access_to_work` and `access_to_cash_allowance` properties can be decreased by 10% of the number of agents at the destination. This reflects the idea that as more agents move to a location, resources become scarcer. 
+
+ - Some retro-actions can counter others: for instance, for the `network` property, the more agents move to a location, the more attractive it might be, reflecting the idea that a larger population can lead to a stronger network and countering the decreasing resources effect. 
+
+```{r function-apply_retro_actions}
+#' apply_retro_actions
+#' 
+#' function to apply retro-actions to the chosen destination
+#' 
+#' @return
+apply_retro_actions <- function(destination, agent_mgr) {
+      # destination_B:
+      if (destination == "destination_B") {
+        num_agents <- length(agent_mgr$get_agents_in_location(destination))
+        destination_B_properties$access_to_work <- destination_B_properties$access_to_work * (1 - 0.1 * num_agents)
+        destination_B_properties$access_to_cash_allowance <- destination_B_properties$access_to_cash_allowance * (1 - 0.1 * num_agents)
+        destination_B_properties$network <- destination_B_properties$network * (1 + 0.1 * num_agents)
+      }
+      
+        # destination_C:
+      if (destination == "destination_C") {
+        num_agents <- length(agent_mgr$get_agents_in_location(destination))
+        destination_C_properties$access_to_work <- destination_C_properties$access_to_work * (1 - 0.1 * num_agents)
+        destination_C_properties$access_to_cash_allowance <- destination_C_properties$access_to_cash_allowance * (1 - 0.1 * num_agents)
+        destination_C_properties$network <- destination_C_properties$network * (1 + 0.1 * num_agents)
+      }
+      
+        # destination_D:
+      if (destination == "destination_D") {
+        num_agents <- length(agent_mgr$get_agents_in_location(destination))
+        destination_D_properties$access_to_work <- destination_D_properties$access_to_work * (1 - 0.1 * num_agents)
+        destination_D_properties$access_to_cash_allowance <- destination_D_properties$access_to_cash_allowance * (1 - 0.1 * num_agents)
+        destination_D_properties$network <- destination_D_properties$network * (1 + 0.1 * num_agents)
+      }
+      
+    }
+```
+  
+```{r example-apply_retro_actions}
+#apply_retro_actions()
+```
+
+```{r  model_v5}
+model_forced_displacement_retro <- function(current_state,
+                                      previous_state, 
+                                      model_data, 
+                                      agent_mgr,
+                                      resource_mgr) {
+  
+  # Show the current simulation step
+  print(paste("Simulation Step:", current_state$step))
+  
+  # Define properties for each location
+  origin_A_properties <- list(
+    living_conditions = 2,
+    safety = 2,
+    access_to_healthcare = 2,
+    access_to_education = 2,
+    access_to_work = 1,
+    access_to_cash_allowance = 1,
+    network = 8
+  )
+  
+  destination_B_properties <- list(
+    living_conditions = 5,
+    safety = 2,
+    access_to_healthcare = 2,
+    access_to_education = 4,
+    access_to_work = 6,
+    access_to_cash_allowance = 1,
+    network = 4
+  )
+  
+  destination_C_properties <- list(
+    living_conditions = 3,
+    safety = 3,
+    access_to_healthcare = 2,
+    access_to_education = 2,
+    access_to_work = 1,
+    access_to_cash_allowance = 6,
+    network = 2
+  )
+  
+  destination_D_properties <- list(
+    living_conditions = 4,
+    safety = 4,
+    access_to_healthcare = 4,
+    access_to_education = 5,
+    access_to_work = 3,
+    access_to_cash_allowance = 3,
+    network = 1
+  )
+  
+  # Assume agent has preferences
+  agent_preferences <- list(
+    living_conditions = 0.2,
+    safety = 0.2,
+    access_to_healthcare = 0.2,
+    access_to_education = 0.1,
+    access_to_work = 0.1,
+    access_to_cash_allowance = 0.1,
+    network = 0.1
+  )
+  
+  # Iterate over each living agent
+  for (agent in agent_mgr$get_living_agents()) {
+    # Age the agent by one "simulation day"
+    agent$age <- agent$age + 1
+    
+    # Create randomness in the decision-making process
+    if (runif(1, min=0, max=1) < 0.4) { # 40% chance to consider moving
+      
+      # Calculate scores based on agent's preferences and past experiences
+    # agent_specific_preferences <- modify_preferences_based_on_agent(agent, agent_preferences)
+     agent_specific_preferences <-  agent_preferences 
+      
+      
+      score_B <- calculate_scores(destination_B_properties, agent_specific_preferences)
+      score_C <- calculate_scores(destination_C_properties, agent_specific_preferences)
+      score_D <- calculate_scores(destination_D_properties, agent_specific_preferences)
+      
+      # Decide where to move based on scores
+      destination_scores <- c(score_B, score_C, score_D)
+      destinations <- c("destination_B", "destination_C", "destination_D")
+      chosen_destination <- destinations[which.max(destination_scores)]
+      
+      if (agent$country_history[length(agent$country_history)] == 'origin_A') {  
+          # Update agent's country history if moving..
+           agent$country_history <- append(agent$country_history, chosen_destination)
+          }
+      
+      # Apply retro-actions to the chosen destination
+     # apply_retro_actions(chosen_destination, agent_mgr)
+      
+    } # End if agent considers moving
+    
+  } # End loop over each agent
+  
+} # End model_forced_displacement function
+```
+
+####  4/5. Simulate Displacement  
+
+```{r simulation_v5, message=FALSE, warning=FALSE}
+country_a <- villager::village$new("Displacement_Model_Feedback",
+                                   initial_condition, 
+                                   model_forced_displacement_retro,
+                                   person)
+simulation_iterations <- 10
+simulator <- villager::simulation$new(simulation_iterations ,
+                                      list(country_a))
+simulator$run_model()
+```
+
+
+#### 5/5. Analyze Results 
+ 
+  
+```{r results_v5, message=FALSE, warning=FALSE, fig.height=5, fig.width=10, message=FALSE, warning=FALSE}
+# Load in data that got save automatically
+agent_data_Feedback <- readr::read_csv("results/Displacement_Model_Feedback/agents.csv")
+agent_data_Feedback |>
+  dplyr::group_by(country_history,  step) |>
+  dplyr::summarise ( n = dplyr::n()) |>
+  ggplot(aes(x =  as.factor(step) , 
+             y = n, 
+             fill = country_history)) +
+  geom_bar( stat = "identity" ) + 
+  scale_colour_viridis_d("Displacement", option = "plasma") + 
+  facet_grid(cols = vars(country_history)) +
+  labs(
+    title = "Simulation Convergence: Population Displacement",
+    subtitle = paste0("Agent Based Modeling Results"),
+    caption = "Dummy Data for illustrative purpose",
+    x = "Simulation Steps"  ) +
+  unhcrthemes::theme_unhcr(grid = "Y", axis = "X", axis_title = "X", legend = FALSE)
+```
+
+
+### Iteration #6 Each Country gets its own model driving potential secondary displacement
+
+#### 2/5. Set up Initial Conditions
+
+Now we can define different initial conditions for each country
+
+```{r initial_v6_Country}
+# Country A has 2,000 agents
+initial_condition_a <- function(current_state, 
+                              model_data,
+                              agent_mgr, 
+                              resource_mgr) {
+  # Set properties for the country
+  resource_mgr$add_resource(villager::resource$new(name="living_conditions", quantity=2))
+  resource_mgr$add_resource(villager::resource$new(name="safety", quantity=2))
+  resource_mgr$add_resource(villager::resource$new(name="access_to_healthcare", quantity=2))
+  resource_mgr$add_resource(villager::resource$new(name="access_to_education", quantity=2))
+  resource_mgr$add_resource(villager::resource$new(name="access_to_work", quantity=2))
+  resource_mgr$add_resource(villager::resource$new(name="access_to_cash_allowance", quantity=1))
+  resource_mgr$add_resource(villager::resource$new(name="network", quantity=1))
+  
+  agent_count <- 2000
+  # Create the initial population
+  create_initial_population(agent_mgr, agent_count)
+  # Create couples
+  create_marriage_couples(agent_mgr)
+  # Add a random number of children to married couples.
+  create_children(agent_mgr, agent_count)
+}
+
+# Country B has 1,000 agents
+initial_condition_b <- function(current_state, 
+                              model_data,
+                              agent_mgr, 
+                              resource_mgr) {
+  # Set properties for the country
+  resource_mgr$add_resource(villager::resource$new(name="living_conditions", quantity=5))
+  resource_mgr$add_resource(villager::resource$new(name="safety", quantity=2))
+  resource_mgr$add_resource(villager::resource$new(name="access_to_healthcare", quantity=2))
+  resource_mgr$add_resource(villager::resource$new(name="access_to_education", quantity=4))
+  resource_mgr$add_resource(villager::resource$new(name="access_to_work", quantity=6))
+  resource_mgr$add_resource(villager::resource$new(name="access_to_cash_allowance", quantity=1))
+  resource_mgr$add_resource(villager::resource$new(name="network", quantity=4))
+  
+  agent_count <- 100
+  # Create the initial population
+  create_initial_population(agent_mgr, agent_count)
+  # Create couples
+  create_marriage_couples(agent_mgr)
+  # Add a random number of children to married couples.
+  create_children(agent_mgr, agent_count)
+}
+
+# Country C has 500 agents
+initial_condition_c <- function(current_state, 
+                              model_data,
+                              agent_mgr, 
+                              resource_mgr) {
+  # Set properties for the country
+  resource_mgr$add_resource(villager::resource$new(name="living_conditions", quantity=3))
+  resource_mgr$add_resource(villager::resource$new(name="safety", quantity=3))
+  resource_mgr$add_resource(villager::resource$new(name="access_to_healthcare", quantity=2))
+  resource_mgr$add_resource(villager::resource$new(name="access_to_education", quantity=2))
+  resource_mgr$add_resource(villager::resource$new(name="access_to_work", quantity=1))
+  resource_mgr$add_resource(villager::resource$new(name="access_to_cash_allowance", quantity=6))
+  resource_mgr$add_resource(villager::resource$new(name="network", quantity=2))
+  
+  agent_count <- 500
+  # Create the initial population
+  create_initial_population(agent_mgr, agent_count)
+  # Create couples
+  create_marriage_couples(agent_mgr)
+  # Add a random number of children to married couples.
+  create_children(agent_mgr, agent_count)
+}
+
+# Country D has 5,000 agents
+initial_condition_d <- function(current_state, 
+                              model_data,
+                              agent_mgr, 
+                              resource_mgr) {
+  # Set properties for the country
+  resource_mgr$add_resource(villager::resource$new(name="living_conditions", quantity=4))
+  resource_mgr$add_resource(villager::resource$new(name="safety", quantity=4))
+  resource_mgr$add_resource(villager::resource$new(name="access_to_healthcare", quantity=4))
+  resource_mgr$add_resource(villager::resource$new(name="access_to_education", quantity=5))
+  resource_mgr$add_resource(villager::resource$new(name="access_to_work", quantity=3))
+  resource_mgr$add_resource(villager::resource$new(name="access_to_cash_allowance", quantity=3))
+  resource_mgr$add_resource(villager::resource$new(name="network", quantity=1))
+
+  agent_count <- 5000
+  # Create the initial population
+  create_initial_population(agent_mgr, agent_count)
+  # Create couples
+  create_marriage_couples(agent_mgr)
+  # Add a random number of children to married couples.
+  create_children(agent_mgr, agent_count)
+}
 ```
 
 
 
+#### 3/5. Design the Model
 
-##  Conclusion: Model Validation
+A score for each destination country based on safety, resources, affordability (based on skills), potential social network connection in the destination (if applicable), and opportunity for support, etc.
+
+The agent calculate the attractiveness for each country based then relates it to his own migration propensity and if the threshold is reached, chooses the country with the highest score to migrate to.
+ 
+People move from country A to another country if the sum of `living_conditions`, `safety`, and `access_to_education` fall below 5.
+If the population raises above 2,100, these properties start to decrease.
+
+```{r model_v6_A}
+model_forced_displacement_a <- function(current_state,
+                           previous_state, 
+                           model_data, 
+                           agent_mgr,
+                           resource_mgr,
+                           village_mgr) {
+  print(paste("Step for Country A:", current_state$step))
+  # Age agents by a day
+  for (agent in agent_mgr$get_living_agents()) {
+    agent$age <- agent$age+1
+  }
+  
+  ##  First: Update the country properties, as functions of total population ---
+  population_total <- length(agent_mgr$get_living_agents())
+  living_conditions <- resource_mgr$get_resource("living_conditions")
+  safety <- resource_mgr$get_resource("safety")
+  access_to_education <- resource_mgr$get_resource("access_to_education")
+  
+  
+  print(paste("Current Properties for Country A: - population_total",  population_total,
+              " -- living_conditions: ",  living_conditions$quantity,
+              " -- safety: ",  safety$quantity,
+              " --  access_to_education: ",   access_to_education$quantity))
+  
+  if (population_total >= 2100) {
+    living_conditions$quantity <- living_conditions$quantity * 1/population_total
+    safety$quantity <- safety$quantity * 1/ safety$quantity
+    access_to_education$quantity <- access_to_education$quantity * 1
+  }
+  
+  if (population_total < 2100 && population > 1000) {
+    living_conditions$quantity <- 2
+    safety$quantity <- 2
+    access_to_education$quantity <- 3
+  }
+  
+  ## Second: Define the  Movement equation ----
+  should_move = 0.5 * living_conditions$quantity + 
+                0.5 * safety$quantity +
+                0.5 * access_to_education$quantity
+  
+  print(paste("Revised Properties  -- living_conditions: ",  living_conditions$quantity,
+              " -- safety: ",  safety$quantity,
+              " --  access_to_education: ",   access_to_education$quantity,
+              " // providing a should_move Score: ",should_move))
+  
+   
+   
+  # If y < 0, then the agents will want to move
+  # Decide whether the person moves from one country to the next
+  # Limit total movement to 10 agents, per day
+  if (should_move < 0) {
+    total_moved <- 0
+    # Figure out which country to move to
+    country_b <- village_mgr$get_village("country_b")
+    country_b_resource_mgr <- country_b$resource_mgr
+    country_b_safety <- country_b_resource_mgr$get_resource("safety")$quantity
+    country_b_access_to_education <- country_b_resource_mgr$get_resource("access_to_education")$quantity
+    
+    country_c <- village_mgr$get_village("country_c")
+    country_c_resource_mgr <- country_c$resource_mgr
+    country_c_safety <- country_c_resource_mgr$get_resource("safety")$quantity
+    country_c_access_to_education <- country_c_resource_mgr$get_resource("access_to_education")$quantity
+    
+    # Decision equation. Note that you can grab the agent_mgr and check if any of the agents have parents/relatives in this country
+    # y = 0.5*country_b_safety + 0.2*country_b_access_to_education - 0.1*country_c_safety + 0.9*country_c_safety
+    country_eqn <- 0.5 * country_b_safety + 
+                   0.2 * country_b_access_to_education -
+                   0.1 * country_c_safety + 
+                   0.9 * country_c_safety
+    # If >0, Country B looks like an attractive place to move to
+    attractive_country_agent_mgr <- NA
+    
+    if (country_eqn > 0) {
+      attractive_country_agent_mgr <- country_b$agent_mgr
+    } else {
+      # Otherwise Country C looks good
+      attractive_country_agent_mgr <- country_c$agent_mgr
+    }
+    for (agent in agent_mgr$get_living_agents()) {
+      if (total_moved < 10) {
+        attractive_country_agent_mgr$add_agent(agent)
+        agent_mgr$remove_agent(agent$identifier)
+        total_moved <- total_moved + 1
+      }
+    }
+  }
+}
+```
+
+Country B has its own model 
+```{r model_v6_B}
+model_forced_displacement_b <- function(current_state,
+                           previous_state, 
+                           model_data, 
+                           agent_mgr,
+                           resource_mgr,
+                           village_mgr) {
+  print(paste("Step for Country B:", current_state$step))
+  # Age agents by a day
+  for (agent in agent_mgr$get_living_agents()) {
+    agent$age <- agent$age+1
+  }
+}
+```
+
+ 
+Country C has its own model 
+```{r model_v6_C}
+model_forced_displacement_c <- function(current_state,
+                           previous_state, 
+                           model_data, 
+                           agent_mgr,
+                           resource_mgr,
+                           village_mgr) {
+  print(paste("Step for Country C:", current_state$step))
+  # Age agents by a day
+  for (agent in agent_mgr$get_living_agents()) {
+    agent$age <- agent$age+1
+  }
+}
+```
+
+ 
+Country D has its own model 
+
+```{r model_v6_D}
+model_forced_displacement_d <- function(current_state,
+                           previous_state, 
+                           model_data, 
+                           agent_mgr,
+                           resource_mgr,
+                           village_mgr) {
+  print(paste("Step for Country D:", current_state$step))
+  # Age agents by a day
+  for (agent in agent_mgr$get_living_agents()) {
+    agent$age <- agent$age+1
+  }
+}
+```
+
+####  4/5. Simulate Displacement  
+
+```{r simulation_v6, message=FALSE, warning=FALSE}
+country_a <- villager::village$new("Country_A",
+                                   initial_condition_a, 
+                                   model_forced_displacement_a,
+                                   person)
+country_b <- villager::village$new("Country_B",
+                                   initial_condition_b, 
+                                   model_forced_displacement_b,
+                                   person)
+country_c <- villager::village$new("Country_C",
+                                   initial_condition_c, 
+                                   model_forced_displacement_c,
+                                   person)
+country_d <- villager::village$new("Country_D",
+                                   initial_condition_c, 
+                                   model_forced_displacement_d,
+                                   person)
+simulation_iterations <- 3 ## bug if more than 3...
+simulator <- villager::simulation$new(simulation_iterations ,
+                                      list(country_a, country_b, country_c, country_d))
+simulator$run_model()
+```
+
+
+#### 5/5. Analyze Results 
+
+```{r  results_v6, message=FALSE, warning=FALSE, fig.height=5, fig.width=10, message=FALSE, warning=FALSE}
+# Load in data that got save automatically
+agent_dataCountry_A <- readr::read_csv("results/Country_A/agents.csv") |>
+                       dplyr::mutate( country = "Country_A")
+agent_dataCountry_B <- readr::read_csv("results/Country_B/agents.csv") |>
+                       dplyr::mutate( country = "Country_B")
+agent_dataCountry_C <- readr::read_csv("results/Country_C/agents.csv") |>
+                       dplyr::mutate( country = "Country_C")
+agent_dataCountry_D <- readr::read_csv("results/Country_D/agents.csv") |>
+                       dplyr::mutate( country = "Country_D")
+
+agent_data <- dplyr::bind_rows(agent_dataCountry_A, agent_dataCountry_B, 
+agent_dataCountry_C, agent_dataCountry_D) 
+
+agent_data |>
+  dplyr::group_by(country,  step) |>
+  dplyr::summarise ( n = dplyr::n()) |>
+  ggplot(aes(x =  as.factor(step) , 
+             y = n, 
+             fill = country)) +
+  geom_bar( stat = "identity" ) + 
+  scale_colour_viridis_d("Displacement", option = "plasma") + 
+  facet_grid(cols = vars(country)) +
+  labs(
+    title = "Simulation Convergence: Population Displacement",
+    subtitle = paste0("Agent Based Modeling Results"),
+    caption = "Dummy Data for illustrative purpose",
+    x = "Simulation Steps"  ) +
+  unhcrthemes::theme_unhcr(grid = "Y", axis = "X", axis_title = "X", legend = FALSE)
+```
+
+##  Conclusion: How to validate the Model?
 
 Validation is crucial to ensure the credibility and reliability of an Agent-Based Model (ABM) for forced displacement. This process involves comparing the model's outputs with real-world data and expert assessments to confirm its accuracy and realism.
 
